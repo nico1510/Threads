@@ -26,7 +26,9 @@ public class MainClass extends DefaultClassManager{
     primitiveManager.addPrimitive("copy-file", new CopyFileWrapper());
     primitiveManager.addPrimitive("read-forums", new ParseForumsWrapper()); 
     primitiveManager.addPrimitive("draw-sample", new DrawSampleWrapper()); 
-    primitiveManager.addPrimitive("get-newthreadprobability", new GetNewThreadProbWrapper()); 
+    primitiveManager.addPrimitive("get-newthreadprobability", new GetNewThreadProbWrapper());
+    primitiveManager.addPrimitive("read-annealing-results", new ReadAnnealingResultsWrapper());
+    primitiveManager.addPrimitive("get-best-parameters", new BestParametersWrapper());
   }
 
 }

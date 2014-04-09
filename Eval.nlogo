@@ -1,205 +1,48 @@
 extensions [threads javadistributions]
-globals [ forumid startPercent endPercent simruns USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply oldUSERVIEWGEOMETRICVALUEP oldnewThreadProb oldfilterShowAll oldfilterShowWithNoReply oldfilterShowHasReply ]
-turtles-own [value distanceValue]
+globals [forumid]
 __includes["ThreadsTest.nls"]
 
-to setup
-  setup-plots
-  set-current-plot "distance"
-  set-plot-y-range 0 0.1
-  set simruns 10
-  set USERVIEWGEOMETRICVALUEP 0.5
-  set filterShowAll 0.5
-  set filterShowWithNoReply 0.25
-  set filterShowHasReply 0.25
-  
+to setup-eval
+  ;create-eval-file forumid
+end
+
+to eval
+
+  let startPercent 10
+  let endPercent 100
+
   let noOfForums (threads:read-forums "./Threads/threadlegths_sap2.csv" "./Threads/randomNumbersFullSAP.csv")
-  show (word "Number of forums" noOfForums)
-end
-
-to-report get-precision [stepLengthParam]
-  let prec 0
-  let p stepLengthParam
-  while [p < 1] [
-    set p (p * 10)
-    set prec (prec + 1)
-  ]
-  report prec
-end
-
-to start-annealing
-  let steplength 0.01
-  let tempLevelReductions 200
-  let iterationsPerTempLevel 10
-  let controlCDiscount 0.95
-  let cControlP 1
-  let m 0
-  let l 0
-  
-  let prec get-precision steplength
-  
   let contentitems threads:draw-sample forumid startPercent endPercent
-  set newThreadProb precision (threads:get-newthreadprobability forumid startPercent endPercent) prec
+  let dist 1
+
+  threads:read-annealing-results "./Threads/annealing_result.csv"
+  let params threads:get-best-parameters forumid
   
-  let distanceI get-distance forumid startPercent endPercent contentitems
-  let distanceJ 0
+  let USERVIEWGEOMETRICVALUEP (item 0 params)
+  let newThreadProb (item 1 params)
+  let filterShowAll (item 2 params)
+  let filterShowWithNoReply (item 3 params)
+  let filterShowHasReply (item 4 params)
   
-  let minDiff 1  
-  
-  create-annealing-file forumid
-  
-  while [m < tempLevelReductions] 
-    [
-     set l 0
-     while [l < iterationsPerTempLevel]
-        [
-          show "getting neighbour"
-          get-neighbour steplength prec
-          show (word "try with : USERVIEWGEOMETRICVALUEP : " USERVIEWGEOMETRICVALUEP " newThreadProb : " newThreadProb " filterShowAll : " filterShowAll " filterShowWithNoReply : " filterShowWithNoReply " filterShowHasReply : " filterShowHasReply )
-          set distanceJ get-distance forumid startPercent endPercent contentitems
-          show (word "distance : " distanceJ " USERVIEWGEOMETRICVALUEP : " USERVIEWGEOMETRICVALUEP " newThreadProb : " newThreadProb " filterShowAll : " filterShowAll " filterShowWithNoReply : " filterShowWithNoReply " filterShowHasReply : " filterShowHasReply )
-          let deltaC (distanceJ - distanceI)
-          let accept false
-   
-          ifelse (deltaC <= 0)
-           [set accept true  ;we have got a better solution
-            if (distanceJ < minDiff)[
-              threads:copy-file (word "./Threads/simulation_results/output_" forumid "(" behaviorspace-run-number ").csv") (word "./Threads/simulation_results/output_best_" forumid "(" behaviorspace-run-number ").csv")
-              set minDiff distanceJ
-              ]
-            set distanceI distanceJ]
-           [
-             if exp (- deltaC / cControlP) > javadistributions:random-double [set accept true ; we accept the solution although it is worse
-             show "worse distance accepted"
-             set distanceI distanceJ] 
-           ]
-        if (not accept) [restore-old]
-        write-distance distanceI forumid
-        show (word ((m + 1) * 100 / tempLevelReductions) "% finished" )
-        set l (l + 1)
-        ]
-      set cControlP (cControlP * controlCDiscount)  ; reduce temperature
-      set m (m + 1)
-    ]
-  file-delete (word "./simulation_results/output_" forumid "(" behaviorspace-run-number ").csv") ; delete last output because it's not needed anymore
+  threads-run forumid contentitems 1 USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply
+  set dist threads:distance forumid startPercent endPercent (word "./Threads/simulation_results/output_" forumid "(" behaviorspace-run-number ").csv")
+  show (word dist "," behaviorspace-run-number "," USERVIEWGEOMETRICVALUEP "," newThreadProb "," filterShowAll "," filterShowWithNoReply "," filterShowHasReply) 
+  export-eval-file forumid dist USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply
   stop
-end
+end 
 
-to annealing-plot [distanceParam]
-  set-current-plot "distance"
-  plot distanceParam
-end
-
-to write-distance [distanceParam forumidParam]
-  show (word "distance : " distanceParam " USERVIEWGEOMETRICVALUEP : " USERVIEWGEOMETRICVALUEP " newThreadProb : " newThreadProb " filterShowAll : " filterShowAll " filterShowWithNoReply : " filterShowWithNoReply " filterShowHasReply : " filterShowHasReply )
-  annealing-plot distanceParam
-  update-plots
-  export-annealing-file (word distanceParam "," USERVIEWGEOMETRICVALUEP "," newThreadProb "," filterShowAll "," filterShowWithNoReply "," filterShowHasReply ) forumidParam
-end
-
-to create-annealing-file [forumidParam]
-  if file-exists? (word "./annealing_results/annealing_output_" forumidParam "(" behaviorspace-run-number ").csv")
-      [file-delete (word "./annealing_results/annealing_output_" forumidParam "(" behaviorspace-run-number ").csv")]
-  file-open (word "./annealing_results/annealing_output_" forumidParam "(" behaviorspace-run-number ").csv")
-  file-print "distance,USERVIEWGEOMETRICVALUEP,newThreadProb,filterShowAll,filterShowWithNoReply,filterShowHasReply"
+to create-eval-file [forumidParam]
+  if file-exists? (word "./eval_results/evaluation_" forumidParam "(" behaviorspace-run-number ")" ".csv")
+      [file-delete (word "./eval_results/evaluation_" forumidParam "(" behaviorspace-run-number ")" ".csv")]
+  file-open (word "./eval_results/evaluation_" forumidParam "(" behaviorspace-run-number ")" ".csv")
+  file-print "forum,runCount,distance,USERVIEWGEOMETRICVALUEPParam,newThreadProb,filterShowAllParam,filterShowWithNoReplyParam,filterShowHasReplyParam"
   file-close
 end
 
-to export-annealing-file [line forumidParam]
-  file-open (word "./annealing_results/annealing_output_" forumidParam "(" behaviorspace-run-number ").csv")
-  file-print line
+to export-eval-file [forumidParam distanceParam USERVIEWGEOMETRICVALUEPParam newThreadProbParam filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam]
+  file-open (word "./eval_results/evaluation_" forumidParam "(" behaviorspace-run-number ")" ".csv")
+  file-print (word forumidParam "," behaviorspace-run-number "," distanceParam "," USERVIEWGEOMETRICVALUEPParam "," newThreadProbParam "," filterShowAllParam "," filterShowWithNoReplyParam "," filterShowHasReplyParam)
   file-close
-end
-
-to-report get-distance [forumidParam startPercentParam endPercentParam contentitems]
-  threads-run forumidParam contentitems simruns USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply
-  let currentDistance threads:distance forumidParam startPercentParam endPercentParam (word "./Threads/simulation_results/output_" forumidParam "(" behaviorspace-run-number ").csv")
-  report currentDistance
-end
-
-to get-neighbour [steplength prec]
-  save-old
-  let found false
-  while[not found]
-    [
-    restore-old
-    let change javadistributions:uniform-sample 6
-    if change = 0 [set USERVIEWGEOMETRICVALUEP precision (USERVIEWGEOMETRICVALUEP + steplength) prec]
-    if change = 1 [set USERVIEWGEOMETRICVALUEP precision (USERVIEWGEOMETRICVALUEP - steplength) prec]
-    if change = 2 [set filterShowAll precision (filterShowAll + steplength) prec]
-    if change = 3 [set filterShowAll precision (filterShowAll - steplength) prec]
-    if change = 4 [set filterShowHasReply precision (filterShowHasReply + steplength) prec]
-    if change = 5 [set filterShowHasReply precision (filterShowHasReply - steplength) prec]
-    set filterShowWithNoReply precision (1 - (filterShowHasReply + filterShowAll)) prec
-    set found is-validConfiguration?
-  ]
-end
-
-to-report is-validConfiguration?
-    if (newThreadProb <= 0 or newThreadProb > 1)[report false]
-    if (USERVIEWGEOMETRICVALUEP <= 0 or USERVIEWGEOMETRICVALUEP > 1)[report false]
-    if (filterShowAll < 0 or filterShowAll > 1)[report false]
-    if (filterShowHasReply < 0 or filterShowHasReply > 1)[report false]
-    if (filterShowWithNoReply < 0 or filterShowWithNoReply > 1)[report false]
-    if (filterShowAll + filterShowHasReply + filterShowWithNoReply) != 1 [report false]
-  
-report true
-end
-
-to restore-old
-  set USERVIEWGEOMETRICVALUEP oldUSERVIEWGEOMETRICVALUEP
-  set filterShowAll oldfilterShowAll
-  set filterShowHasReply oldfilterShowHasReply
-  set filterShowWithNoReply oldfilterShowWithNoReply
-end
-
-to save-old
-  set oldUSERVIEWGEOMETRICVALUEP USERVIEWGEOMETRICVALUEP
-  set oldfilterShowAll filterShowAll
-  set oldfilterShowHasReply filterShowHasReply
-  set oldfilterShowWithNoReply filterShowWithNoReply
-end
-
-to debug-forum145
-  let noOfForums (threads:read-forums "./Threads/threadlegths_sap2.csv" "./Threads/randomNumbersFullSAP.csv")
-  
-  if file-exists? "./simulation_results/forum145_debug.csv"
-      [file-delete "./simulation_results/forum145_debug.csv"]
-  
-  let startPercentParam 0
-  let endPercentParam 100
-  let contentitemsParam threads:draw-sample 145 startPercentParam endPercentParam ;take 100% of forum 145
-  let newThreadProbParam precision (threads:get-newthreadprobability 145 startPercentParam endPercentParam) 3  ; get newThreadProb
-  
-  let missed threads:missed-count
-  let counter 0
-  threads:reset
-  
-  while [counter < contentitemsParam]
-  [ 
-    ifelse (javadistributions:generic-sample2 newThreadProbParam (1 - newThreadProbParam)) = 0
-      [threads:new-thread
-      file-open "./simulation_results/forum145_debug.csv"
-      file-print (word "newThread," counter)
-      file-close
-      set counter counter + 1
-      ]
-      [let listfilter (javadistributions:generic-sample3 0.38 0.21 0.41) + 1
-       let pos javadistributions:geometric-sample 0.12
-       set missed threads:missed-count
-       threads:reply-to pos listfilter
-       if (missed = threads:missed-count)[
-       file-open "./simulation_results/forum145_debug.csv"
-       file-print (word "reply," counter)
-       file-close
-       set counter counter + 1
-       ]
-      ]
-  ]
-  create-file 145
-  export-file 145 1 threads:thread-dist 0.12 newThreadProbParam 0.38 0.21 0.41
-  let currentDistance threads:distance 145 startPercentParam endPercentParam (word "./Threads/simulation_results/output_" 145 "(" behaviorspace-run-number ").csv")
-  show currentDistance
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -230,12 +73,12 @@ ticks
 30.0
 
 BUTTON
-61
-57
-134
-90
-setup
-setup
+118
+79
+181
+112
+eval
+eval
 NIL
 1
 T
@@ -245,41 +88,6 @@ NIL
 NIL
 NIL
 1
-
-BUTTON
-62
-137
-174
-170
-debug_145
-debug-forum145
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-PLOT
-179
-94
-884
-474
-distance
-NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"default" 1.0 0 -16777216 true "" ""
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -629,9 +437,9 @@ NetLogo 5.0.5
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="annealing" repetitions="5" runMetricsEveryStep="false">
-    <setup>setup</setup>
-    <go>start-annealing</go>
+  <experiment name="eval" repetitions="20" runMetricsEveryStep="false">
+    <setup>setup-eval</setup>
+    <go>eval</go>
     <enumeratedValueSet variable="forumid">
       <value value="244"/>
       <value value="242"/>
@@ -678,12 +486,6 @@ NetLogo 5.0.5
       <value value="245"/>
       <value value="142"/>
       <value value="144"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="startPercent">
-      <value value="0"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="endPercent">
-      <value value="10"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>

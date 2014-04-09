@@ -31,6 +31,7 @@ public class Distance {
     public static ArrayList<Integer> randomNumbersList = new ArrayList<Integer>();
     public static TreeMap<Integer, ArrayList<Integer>> threadsPerForumMap = new TreeMap<Integer, ArrayList<Integer>>();
     public static TreeMap<String, ForumDistribution> distributionsPerForumMap = new TreeMap<String, ForumDistribution>();
+    public static TreeMap<String, ArrayList<Double>> bestParametersMap = new TreeMap<String, ArrayList<Double>>();
 
     public static Map<Integer, Double> createCumulativeDistribution(Map<Integer, Integer> distribution) {
         Map<Integer, Integer> distributionMap = new TreeMap<Integer, Integer>(distribution);
@@ -255,7 +256,7 @@ public class Distance {
     private static void dumpDistributionToFile(ForumDistribution sampledForumDistribution, int forumID, int startPercent, int endPercent) {
         BufferedWriter writer = null;
         try {
-            writer = new BufferedWriter(new FileWriter("./ThreadsNeu/results/sample-distribution_" + forumID + "_start_" + startPercent + "_end_" + endPercent + ".csv"));
+            writer = new BufferedWriter(new FileWriter("./Threads/sample_distributions/sample-distribution_" + forumID + "_start_" + startPercent + "_end_" + endPercent + ".csv"));
             TreeMap<Integer, Integer> distribution = distributionsPerForumMap.get(String.valueOf(forumID) + String.valueOf(startPercent) + String.valueOf(endPercent)).getDistribution();
             for (Entry e : distribution.entrySet()) {
                 writer.write(String.valueOf(e.getKey()) + "," + String.valueOf(e.getValue()));
@@ -276,5 +277,69 @@ public class Distance {
     public static double getNewThreadProb(int forumID, int startPercent, int endPercent) {
         ForumDistribution forumDistr = distributionsPerForumMap.get(String.valueOf(forumID) + String.valueOf(startPercent) + String.valueOf(endPercent));
         return forumDistr.getNumberOfThreads() / (double) forumDistr.getNumberOfContentItems();
+    }
+
+    public static void readAnnealingResults(String annealingFile) {
+        if (bestParametersMap.isEmpty()) {
+            BufferedReader br = null;
+            try {
+                br = new BufferedReader(new FileReader(new File(annealingFile)));
+                String line;
+                String[] infos;
+                String forum;
+                Double distance;
+                Double USERVIEWGEOMETRICVALUEP;
+                Double newThreadProb;
+                Double filterShowAll;
+                Double filterShowWithNoReply;
+                Double filterShowHasReply;
+                ArrayList<Double> params;
+
+                while ((line = br.readLine()) != null) {
+                    if (!line.contains("forum")) {
+                        //distance	USERVIEWGEOMETRICVALUEP	newThreadProb	filterShowAll	filterShowWithNoReply	filterShowHasReply
+                        infos = line.split(",");
+                        forum = infos[0];
+                        distance = Double.parseDouble(infos[1]);
+                        USERVIEWGEOMETRICVALUEP = Double.parseDouble(infos[2]);
+                        newThreadProb = Double.parseDouble(infos[3]);
+                        filterShowAll = Double.parseDouble(infos[4]);
+                        filterShowWithNoReply = Double.parseDouble(infos[5]);
+                        filterShowHasReply = Double.parseDouble(infos[6]);
+
+                        if (!bestParametersMap.containsKey(forum)) {
+                            params = new ArrayList<Double>();
+                            params.add(distance);
+                            params.add(USERVIEWGEOMETRICVALUEP);
+                            params.add(newThreadProb);
+                            params.add(filterShowAll);
+                            params.add(filterShowWithNoReply);
+                            params.add(filterShowHasReply);
+                            bestParametersMap.put(forum, params);
+                        } else {
+                            if (distance < bestParametersMap.get(forum).get(0)) {
+                                params = new ArrayList<Double>();
+                                params.add(distance);
+                                params.add(USERVIEWGEOMETRICVALUEP);
+                                params.add(newThreadProb);
+                                params.add(filterShowAll);
+                                params.add(filterShowWithNoReply);
+                                params.add(filterShowHasReply);
+                                bestParametersMap.put(forum, params);
+                            }
+                        }
+
+                    }
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(Distance.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
+                try {
+                    br.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(Distance.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
     }
 }

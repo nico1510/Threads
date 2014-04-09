@@ -1,14 +1,3 @@
-to threads-draw [frequencies]
-  let index 1
-  foreach frequencies
-      [crt ? [
-          hide-turtle
-          set value index
-        ] 
-       set index index + 1
-      ]
-end
-
 to threads-run [ forumidParam contentitemsParam simrunsParam USERVIEWGEOMETRICVALUEPParam newThreadProbParam filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam]
   let runs 0
   threads:reset
@@ -39,16 +28,16 @@ to-report step [ contentitemsParam USERVIEWGEOMETRICVALUEPParam newThreadProbPar
 end
 
 to create-file [forumidParam]
-  if file-exists? (word "./results/output_" forumidParam "(" behaviorspace-run-number ").csv")
-      [file-delete (word "./results/output_" forumidParam "(" behaviorspace-run-number ").csv")]
-  file-open (word "./results/output_" forumidParam "(" behaviorspace-run-number ").csv")
+  if file-exists? (word "./simulation_results/output_" forumidParam "(" behaviorspace-run-number ").csv")
+      [file-delete (word "./simulation_results/output_" forumidParam "(" behaviorspace-run-number ").csv")]
+  file-open (word "./simulation_results/output_" forumidParam "(" behaviorspace-run-number ").csv")
   file-print "THREADSIZE,FREQUENCY,runCount,USERVIEWGEOMETRICVALUEPParam,filterShowAllParam,filterShowWithNoReplyParam,filterShowHasReplyParam,policyLatestActivityCreationDate,policyThreadCreationDate,policyThreadSize"
   file-close
 end
 
 to export-file [forumidParam runcount threads USERVIEWGEOMETRICVALUEPParam newThreadProbParam filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam]
   let row runcount
-  file-open (word "./results/output_" forumidParam "(" behaviorspace-run-number ").csv")
+  file-open (word "./simulation_results/output_" forumidParam "(" behaviorspace-run-number ").csv")
   let counter 1
   foreach threads
       [
