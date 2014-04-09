@@ -1,5 +1,5 @@
 extensions [threads javadistributions]
-globals [ forumid startPercent endPercent simruns USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply oldUSERVIEWGEOMETRICVALUEP oldnewThreadProb oldfilterShowAll oldfilterShowWithNoReply oldfilterShowHasReply ]
+globals [ forumid startPercent endPercent simruns USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply oldUSERVIEWGEOMETRICVALUEP oldfilterShowAll oldfilterShowWithNoReply oldfilterShowHasReply bestDistance bestUSERVIEWGEOMETRICVALUEP bestfilterShowAll bestfilterShowWithNoReply bestfilterShowHasReply]
 turtles-own [value distanceValue]
 __includes["ThreadsTest.nls"]
 
@@ -44,7 +44,7 @@ to start-annealing
   let distanceI get-distance forumid startPercent endPercent contentitems
   let distanceJ 0
   
-  let minDiff 1  
+  set bestDistance 1  
   
   create-annealing-file forumid
   
@@ -63,9 +63,9 @@ to start-annealing
    
           ifelse (deltaC <= 0)
            [set accept true  ;we have got a better solution
-            if (distanceJ < minDiff)[
+            if (distanceJ < bestDistance)[
               threads:copy-file (word "./Threads/simulation_results/output_" forumid "(" behaviorspace-run-number ").csv") (word "./Threads/simulation_results/output_best_" forumid "(" behaviorspace-run-number ").csv")
-              set minDiff distanceJ
+              update-best distanceJ
               ]
             set distanceI distanceJ]
            [
@@ -144,6 +144,14 @@ to-report is-validConfiguration?
     if (filterShowAll + filterShowHasReply + filterShowWithNoReply) != 1 [report false]
   
 report true
+end
+
+to update-best [distanceParam]
+  set bestDistance distanceParam
+  set bestUSERVIEWGEOMETRICVALUEP USERVIEWGEOMETRICVALUEP
+  set bestfilterShowAll filterShowAll
+  set bestfilterShowHasReply filterShowHasReply
+  set bestfilterShowWithNoReply filterShowWithNoReply
 end
 
 to restore-old
@@ -632,6 +640,12 @@ NetLogo 5.0.5
   <experiment name="annealing" repetitions="5" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>start-annealing</go>
+    <metric>bestDistance</metric>
+    <metric>bestUSERVIEWGEOMETRICVALUEP</metric>
+    <metric>newThreadProb</metric>
+    <metric>bestfilterShowAll</metric>
+    <metric>bestfilterShowWithNoReply</metric>
+    <metric>bestfilterShowHasReply</metric>
     <enumeratedValueSet variable="forumid">
       <value value="244"/>
       <value value="242"/>

@@ -1,10 +1,6 @@
 extensions [threads javadistributions]
-globals [forumid]
+globals [forumid dist USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply]
 __includes["ThreadsTest.nls"]
-
-to setup-eval
-  ;create-eval-file forumid
-end
 
 to eval
 
@@ -13,37 +9,21 @@ to eval
 
   let noOfForums (threads:read-forums "./Threads/threadlegths_sap2.csv" "./Threads/randomNumbersFullSAP.csv")
   let contentitems threads:draw-sample forumid startPercent endPercent
-  let dist 1
 
   threads:read-annealing-results "./Threads/annealing_result.csv"
   let params threads:get-best-parameters forumid
   
-  let USERVIEWGEOMETRICVALUEP (item 0 params)
-  let newThreadProb (item 1 params)
-  let filterShowAll (item 2 params)
-  let filterShowWithNoReply (item 3 params)
-  let filterShowHasReply (item 4 params)
+  set USERVIEWGEOMETRICVALUEP (item 0 params)
+  set newThreadProb (item 1 params)
+  set filterShowAll (item 2 params)
+  set filterShowWithNoReply (item 3 params)
+  set filterShowHasReply (item 4 params)
   
   threads-run forumid contentitems 1 USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply
   set dist threads:distance forumid startPercent endPercent (word "./Threads/simulation_results/output_" forumid "(" behaviorspace-run-number ").csv")
-  show (word dist "," behaviorspace-run-number "," USERVIEWGEOMETRICVALUEP "," newThreadProb "," filterShowAll "," filterShowWithNoReply "," filterShowHasReply) 
-  export-eval-file forumid dist USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply
   stop
 end 
 
-to create-eval-file [forumidParam]
-  if file-exists? (word "./eval_results/evaluation_" forumidParam "(" behaviorspace-run-number ")" ".csv")
-      [file-delete (word "./eval_results/evaluation_" forumidParam "(" behaviorspace-run-number ")" ".csv")]
-  file-open (word "./eval_results/evaluation_" forumidParam "(" behaviorspace-run-number ")" ".csv")
-  file-print "forum,runCount,distance,USERVIEWGEOMETRICVALUEPParam,newThreadProb,filterShowAllParam,filterShowWithNoReplyParam,filterShowHasReplyParam"
-  file-close
-end
-
-to export-eval-file [forumidParam distanceParam USERVIEWGEOMETRICVALUEPParam newThreadProbParam filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam]
-  file-open (word "./eval_results/evaluation_" forumidParam "(" behaviorspace-run-number ")" ".csv")
-  file-print (word forumidParam "," behaviorspace-run-number "," distanceParam "," USERVIEWGEOMETRICVALUEPParam "," newThreadProbParam "," filterShowAllParam "," filterShowWithNoReplyParam "," filterShowHasReplyParam)
-  file-close
-end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -438,8 +418,13 @@ NetLogo 5.0.5
 @#$#@#$#@
 <experiments>
   <experiment name="eval" repetitions="20" runMetricsEveryStep="false">
-    <setup>setup-eval</setup>
     <go>eval</go>
+    <metric>dist</metric>
+    <metric>USERVIEWGEOMETRICVALUEP</metric>
+    <metric>newThreadProb</metric>
+    <metric>filterShowAll</metric>
+    <metric>filterShowWithNoReply</metric>
+    <metric>filterShowHasReply</metric>
     <enumeratedValueSet variable="forumid">
       <value value="244"/>
       <value value="242"/>

@@ -295,17 +295,19 @@ public class Distance {
                 Double filterShowHasReply;
                 ArrayList<Double> params;
 
+                boolean data = false;
+
                 while ((line = br.readLine()) != null) {
-                    if (!line.contains("forum")) {
-                        //distance	USERVIEWGEOMETRICVALUEP	newThreadProb	filterShowAll	filterShowWithNoReply	filterShowHasReply
+                    if (data) {
+                        // "[run number]","forumid","startPercent","endPercent","[step]","bestDistance","bestUSERVIEWGEOMETRICVALUEP","newThreadProb","bestfilterShowAll","bestfilterShowWithNoReply","bestfilterShowHasReply"
                         infos = line.split(",");
-                        forum = infos[0];
-                        distance = Double.parseDouble(infos[1]);
-                        USERVIEWGEOMETRICVALUEP = Double.parseDouble(infos[2]);
-                        newThreadProb = Double.parseDouble(infos[3]);
-                        filterShowAll = Double.parseDouble(infos[4]);
-                        filterShowWithNoReply = Double.parseDouble(infos[5]);
-                        filterShowHasReply = Double.parseDouble(infos[6]);
+                        forum = infos[1].replaceAll("\"", "");
+                        distance = Double.parseDouble(infos[5].replaceAll("\"", ""));
+                        USERVIEWGEOMETRICVALUEP = Double.parseDouble(infos[6].replaceAll("\"", ""));
+                        newThreadProb = Double.parseDouble(infos[7].replaceAll("\"", ""));
+                        filterShowAll = Double.parseDouble(infos[8].replaceAll("\"", ""));
+                        filterShowWithNoReply = Double.parseDouble(infos[9].replaceAll("\"", ""));
+                        filterShowHasReply = Double.parseDouble(infos[10].replaceAll("\"", ""));
 
                         if (!bestParametersMap.containsKey(forum)) {
                             params = new ArrayList<Double>();
@@ -329,6 +331,9 @@ public class Distance {
                             }
                         }
 
+                    }
+                    if (line.contains("[run number]")) {
+                        data = true;
                     }
                 }
             } catch (IOException ex) {
