@@ -1,0 +1,59 @@
+to threads-draw [frequencies]
+  let index 1
+  foreach frequencies
+      [crt ? [
+          hide-turtle
+          set value index
+        ] 
+       set index index + 1
+      ]
+end
+
+to threads-run [ forumidParam contentitemsParam simrunsParam USERVIEWGEOMETRICVALUEPParam newThreadProbParam filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam]
+  let runs 0
+  threads:reset
+  create-file forumidParam
+  while [runs < simrunsParam]
+  [
+    let threadlist step contentitemsParam USERVIEWGEOMETRICVALUEPParam newThreadProbParam filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam
+    export-file forumidParam (runs + 1) threadlist USERVIEWGEOMETRICVALUEPParam newThreadProbParam filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam
+    ;threads-draw threadlist
+    set runs (runs + 1)
+  ]
+end
+
+to-report step [ contentitemsParam USERVIEWGEOMETRICVALUEPParam newThreadProbParam filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam]
+  let counter 0
+  threads:reset
+  while [counter - threads:missed-count < contentitemsParam]
+  [ 
+    ifelse (javadistributions:generic-sample2 newThreadProbParam (1 - newThreadProbParam)) = 0
+      [threads:new-thread]
+      [let listfilter (javadistributions:generic-sample3 filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam) + 1
+       let pos javadistributions:geometric-sample USERVIEWGEOMETRICVALUEPParam
+       threads:reply-to pos listfilter
+      ]
+    set counter counter + 1
+  ]
+  report threads:thread-dist
+end
+
+to create-file [forumidParam]
+  if file-exists? (word "./results/output_" forumidParam "(" behaviorspace-run-number ").csv")
+      [file-delete (word "./results/output_" forumidParam "(" behaviorspace-run-number ").csv")]
+  file-open (word "./results/output_" forumidParam "(" behaviorspace-run-number ").csv")
+  file-print "THREADSIZE,FREQUENCY,runCount,USERVIEWGEOMETRICVALUEPParam,filterShowAllParam,filterShowWithNoReplyParam,filterShowHasReplyParam,policyLatestActivityCreationDate,policyThreadCreationDate,policyThreadSize"
+  file-close
+end
+
+to export-file [forumidParam runcount threads USERVIEWGEOMETRICVALUEPParam newThreadProbParam filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam]
+  let row runcount
+  file-open (word "./results/output_" forumidParam "(" behaviorspace-run-number ").csv")
+  let counter 1
+  foreach threads
+      [
+        file-print (word counter "," ? "," runcount "," USERVIEWGEOMETRICVALUEPParam "," filterShowAllParam "," filterShowWithNoReplyParam "," filterShowHasReplyParam ",1, 0, 0" )
+        set counter counter + 1
+        ]
+  file-close
+end
