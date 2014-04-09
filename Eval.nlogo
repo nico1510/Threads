@@ -417,7 +417,7 @@ NetLogo 5.0.5
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="eval" repetitions="20" runMetricsEveryStep="false">
+  <experiment name="eval" repetitions="100" runMetricsEveryStep="false">
     <go>eval</go>
     <metric>dist</metric>
     <metric>USERVIEWGEOMETRICVALUEP</metric>
