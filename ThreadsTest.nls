@@ -1,26 +1,34 @@
-to threads-run [ forumidParam contentitemsParam simrunsParam USERVIEWGEOMETRICVALUEPParam newThreadProbParam filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam]
+to threads-run [forumidParam contentitemsParam simrunsParam USERVIEWGEOMETRICVALUEPParam newThreadProbParam filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam powerValueParam]
   let runs 0
   threads:reset
   create-file forumidParam
   while [runs < simrunsParam]
   [
-    let threadlist step contentitemsParam USERVIEWGEOMETRICVALUEPParam newThreadProbParam filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam
-    export-file forumidParam (runs + 1) threadlist USERVIEWGEOMETRICVALUEPParam newThreadProbParam filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam
+    let threadlist step contentitemsParam USERVIEWGEOMETRICVALUEPParam newThreadProbParam filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam powerValueParam
+    export-file forumidParam (runs + 1) threadlist USERVIEWGEOMETRICVALUEPParam newThreadProbParam filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam powerValueParam
     ;threads-draw threadlist
     set runs (runs + 1)
   ]
 end
 
-to-report step [ contentitemsParam USERVIEWGEOMETRICVALUEPParam newThreadProbParam filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam]
+to-report step [contentitemsParam USERVIEWGEOMETRICVALUEPParam newThreadProbParam filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam powerValueParam]
   let counter 0
   threads:reset
   while [counter - threads:missed-count < contentitemsParam]
   [ 
     ifelse (javadistributions:generic-sample2 newThreadProbParam (1 - newThreadProbParam)) = 0
-      [threads:new-thread]
-      [let listfilter (javadistributions:generic-sample3 filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam) + 1
-       let pos javadistributions:geometric-sample USERVIEWGEOMETRICVALUEPParam
-       threads:reply-to pos listfilter
+      [
+	threads:new-thread
+      ]
+      [
+       if (mode = "filter")[
+         let listfilter (javadistributions:generic-sample3 filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam) + 1
+         let pos javadistributions:geometric-sample USERVIEWGEOMETRICVALUEPParam
+         threads:reply-to pos listfilter
+       ]
+       if (mode = "pa")[
+	 threads:reply-to-pa powerValueParam
+       ]
       ]
     set counter counter + 1
   ]
@@ -31,17 +39,26 @@ to create-file [forumidParam]
   if file-exists? (word "./simulation_results/output_" forumidParam "(" behaviorspace-run-number ").csv")
       [file-delete (word "./simulation_results/output_" forumidParam "(" behaviorspace-run-number ").csv")]
   file-open (word "./simulation_results/output_" forumidParam "(" behaviorspace-run-number ").csv")
-  file-print "THREADSIZE,FREQUENCY,runCount,USERVIEWGEOMETRICVALUEPParam,filterShowAllParam,filterShowWithNoReplyParam,filterShowHasReplyParam,policyLatestActivityCreationDate,policyThreadCreationDate,policyThreadSize"
+  if (mode = "filter")[
+    file-print "THREADSIZE,FREQUENCY,runCount,USERVIEWGEOMETRICVALUEPParam,filterShowAllParam,filterShowWithNoReplyParam,filterShowHasReplyParam,policyLatestActivityCreationDate,policyThreadCreationDate,policyThreadSize"
+  ]
+  if (mode = "pa")[
+    file-print "THREADSIZE,FREQUENCY,runCount,powerValue"
+  ]
   file-close
 end
 
-to export-file [forumidParam runcount threads USERVIEWGEOMETRICVALUEPParam newThreadProbParam filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam]
+to export-file [forumidParam runcount threads USERVIEWGEOMETRICVALUEPParam newThreadProbParam filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam powerValueParam]
   let row runcount
   file-open (word "./simulation_results/output_" forumidParam "(" behaviorspace-run-number ").csv")
   let counter 1
   foreach threads
-      [
-        file-print (word counter "," ? "," runcount "," USERVIEWGEOMETRICVALUEPParam "," filterShowAllParam "," filterShowWithNoReplyParam "," filterShowHasReplyParam ",1, 0, 0" )
+      [  if (mode = "filter")[
+           file-print (word counter "," ? "," runcount "," USERVIEWGEOMETRICVALUEPParam "," filterShowAllParam "," filterShowWithNoReplyParam "," filterShowHasReplyParam ",1, 0, 0" )
+         ]
+         if (mode = "pa")[
+           file-print (word counter "," ? "," runcount "," powerValueParam)
+         ]
         set counter counter + 1
         ]
   file-close

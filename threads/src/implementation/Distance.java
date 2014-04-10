@@ -279,7 +279,7 @@ public class Distance {
         return forumDistr.getNumberOfThreads() / (double) forumDistr.getNumberOfContentItems();
     }
 
-    public static void readAnnealingResults(String annealingFile) {
+    public static void readAnnealingResults(String annealingFile, String mode) {
         if (bestParametersMap.isEmpty()) {
             BufferedReader br = null;
             try {
@@ -288,52 +288,72 @@ public class Distance {
                 String[] infos;
                 String forum;
                 Double distance;
-                Double USERVIEWGEOMETRICVALUEP;
-                Double newThreadProb;
-                Double filterShowAll;
-                Double filterShowWithNoReply;
-                Double filterShowHasReply;
+                Double USERVIEWGEOMETRICVALUEP = null;
+                Double newThreadProb = null;
+                Double filterShowAll = null;
+                Double filterShowWithNoReply = null;
+                Double filterShowHasReply = null;
+                Double powerValue = null;
                 ArrayList<Double> params;
 
-                boolean data = false;
+                boolean whatFollowsIsData = false;
 
                 while ((line = br.readLine()) != null) {
-                    if (data) {
-                        // "[run number]","forumid","startPercent","endPercent","[step]","bestDistance","bestUSERVIEWGEOMETRICVALUEP","newThreadProb","bestfilterShowAll","bestfilterShowWithNoReply","bestfilterShowHasReply"
+                    if (whatFollowsIsData) {
                         infos = line.split(",");
                         forum = infos[1].replaceAll("\"", "");
-                        distance = Double.parseDouble(infos[5].replaceAll("\"", ""));
-                        USERVIEWGEOMETRICVALUEP = Double.parseDouble(infos[6].replaceAll("\"", ""));
-                        newThreadProb = Double.parseDouble(infos[7].replaceAll("\"", ""));
-                        filterShowAll = Double.parseDouble(infos[8].replaceAll("\"", ""));
-                        filterShowWithNoReply = Double.parseDouble(infos[9].replaceAll("\"", ""));
-                        filterShowHasReply = Double.parseDouble(infos[10].replaceAll("\"", ""));
+                        distance = Double.parseDouble(infos[6].replaceAll("\"", ""));
+
+                        if (mode.equals("filter")) {
+                            //"[run number]","forumid","mode","startPercent","endPercent","[step]","lastAcceptedDistance","USERVIEWGEOMETRICVALUEP","newThreadProb","filterShowAll","filterShowWithNoReply","filterShowHasReply"
+                            USERVIEWGEOMETRICVALUEP = Double.parseDouble(infos[7].replaceAll("\"", ""));
+                            newThreadProb = Double.parseDouble(infos[8].replaceAll("\"", ""));
+                            filterShowAll = Double.parseDouble(infos[9].replaceAll("\"", ""));
+                            filterShowWithNoReply = Double.parseDouble(infos[10].replaceAll("\"", ""));
+                            filterShowHasReply = Double.parseDouble(infos[11].replaceAll("\"", ""));
+                        } else if (mode.equals("pa")) {
+                            //"[run number]","forumid","mode","startPercent","endPercent","[step]","lastAcceptedDistance","powerValue","newThreadProb"
+                            powerValue = Double.parseDouble(infos[7].replaceAll("\"", ""));
+                            newThreadProb = Double.parseDouble(infos[8].replaceAll("\"", ""));
+                        }
+
 
                         if (!bestParametersMap.containsKey(forum)) {
                             params = new ArrayList<Double>();
-                            params.add(distance);
-                            params.add(USERVIEWGEOMETRICVALUEP);
-                            params.add(newThreadProb);
-                            params.add(filterShowAll);
-                            params.add(filterShowWithNoReply);
-                            params.add(filterShowHasReply);
-                            bestParametersMap.put(forum, params);
-                        } else {
-                            if (distance < bestParametersMap.get(forum).get(0)) {
-                                params = new ArrayList<Double>();
+                            if (mode.equals("filter")) {
                                 params.add(distance);
                                 params.add(USERVIEWGEOMETRICVALUEP);
                                 params.add(newThreadProb);
                                 params.add(filterShowAll);
                                 params.add(filterShowWithNoReply);
                                 params.add(filterShowHasReply);
+                            } else if (mode.equals("pa")) {
+                                params.add(distance);
+                                params.add(powerValue);
+                                params.add(newThreadProb);
+                            }
+                            bestParametersMap.put(forum, params);
+                        } else {
+                            if (distance < bestParametersMap.get(forum).get(0)) {
+                                params = new ArrayList<Double>();
+                                params.add(distance);
+                                if (mode.equals("filter")) {
+                                    params.add(USERVIEWGEOMETRICVALUEP);
+                                    params.add(newThreadProb);
+                                    params.add(filterShowAll);
+                                    params.add(filterShowWithNoReply);
+                                    params.add(filterShowHasReply);
+                                } else if (mode.equals("pa")) {
+                                    params.add(powerValue);
+                                    params.add(newThreadProb);
+                                }
                                 bestParametersMap.put(forum, params);
                             }
                         }
 
                     }
                     if (line.contains("[run number]")) {
-                        data = true;
+                        whatFollowsIsData = true;
                     }
                 }
             } catch (IOException ex) {

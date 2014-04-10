@@ -1,5 +1,5 @@
 extensions [threads javadistributions]
-globals [ forumid startPercent endPercent simruns USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply oldUSERVIEWGEOMETRICVALUEP oldfilterShowAll oldfilterShowWithNoReply oldfilterShowHasReply bestDistance bestUSERVIEWGEOMETRICVALUEP bestfilterShowAll bestfilterShowWithNoReply bestfilterShowHasReply]
+globals [ mode forumid startPercent endPercent simruns USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply powerValue oldUSERVIEWGEOMETRICVALUEP oldfilterShowAll oldfilterShowWithNoReply oldfilterShowHasReply oldpowerValue lastAcceptedDistance]
 turtles-own [value distanceValue]
 __includes["ThreadsTest.nls"]
 
@@ -8,10 +8,14 @@ to setup
   set-current-plot "distance"
   set-plot-y-range 0 0.1
   set simruns 10
+  
   set USERVIEWGEOMETRICVALUEP 0.5
   set filterShowAll 0.5
   set filterShowWithNoReply 0.25
   set filterShowHasReply 0.25
+  
+  ;only for pa model
+  set powerValue 0.5
   
   let noOfForums (threads:read-forums "./Threads/threadlegths_sap2.csv" "./Threads/randomNumbersFullSAP.csv")
   show (word "Number of forums" noOfForums)
@@ -44,7 +48,6 @@ to start-annealing
   let distanceI get-distance forumid startPercent endPercent contentitems
   let distanceJ 0
   
-  set bestDistance 1  
   
   create-annealing-file forumid
   
@@ -53,25 +56,24 @@ to start-annealing
      set l 0
      while [l < iterationsPerTempLevel]
         [
-          show "getting neighbour"
           get-neighbour steplength prec
-          show (word "try with : USERVIEWGEOMETRICVALUEP : " USERVIEWGEOMETRICVALUEP " newThreadProb : " newThreadProb " filterShowAll : " filterShowAll " filterShowWithNoReply : " filterShowWithNoReply " filterShowHasReply : " filterShowHasReply )
           set distanceJ get-distance forumid startPercent endPercent contentitems
-          show (word "distance : " distanceJ " USERVIEWGEOMETRICVALUEP : " USERVIEWGEOMETRICVALUEP " newThreadProb : " newThreadProb " filterShowAll : " filterShowAll " filterShowWithNoReply : " filterShowWithNoReply " filterShowHasReply : " filterShowHasReply )
           let deltaC (distanceJ - distanceI)
           let accept false
    
           ifelse (deltaC <= 0)
            [set accept true  ;we have got a better solution
-            if (distanceJ < bestDistance)[
-              threads:copy-file (word "./Threads/simulation_results/output_" forumid "(" behaviorspace-run-number ").csv") (word "./Threads/simulation_results/output_best_" forumid "(" behaviorspace-run-number ").csv")
-              update-best distanceJ
-              ]
-            set distanceI distanceJ]
+            set distanceI distanceJ
+            set lastAcceptedDistance distanceI
+            threads:copy-file (word "./Threads/simulation_results/output_" forumid "(" behaviorspace-run-number ").csv") (word "./Threads/simulation_results/output_last_" forumid "(" behaviorspace-run-number ").csv")
+            ]
            [
              if exp (- deltaC / cControlP) > javadistributions:random-double [set accept true ; we accept the solution although it is worse
              show "worse distance accepted"
-             set distanceI distanceJ] 
+             set distanceI distanceJ
+             set lastAcceptedDistance distanceI
+             threads:copy-file (word "./Threads/simulation_results/output_" forumid "(" behaviorspace-run-number ").csv") (word "./Threads/simulation_results/output_last_" forumid "(" behaviorspace-run-number ").csv")
+             ] 
            ]
         if (not accept) [restore-old]
         write-distance distanceI forumid
@@ -91,17 +93,26 @@ to annealing-plot [distanceParam]
 end
 
 to write-distance [distanceParam forumidParam]
-  show (word "distance : " distanceParam " USERVIEWGEOMETRICVALUEP : " USERVIEWGEOMETRICVALUEP " newThreadProb : " newThreadProb " filterShowAll : " filterShowAll " filterShowWithNoReply : " filterShowWithNoReply " filterShowHasReply : " filterShowHasReply )
   annealing-plot distanceParam
   update-plots
-  export-annealing-file (word distanceParam "," USERVIEWGEOMETRICVALUEP "," newThreadProb "," filterShowAll "," filterShowWithNoReply "," filterShowHasReply ) forumidParam
+  if (mode = "filter")[
+    export-annealing-file (word distanceParam "," USERVIEWGEOMETRICVALUEP "," newThreadProb "," filterShowAll "," filterShowWithNoReply "," filterShowHasReply ) forumidParam
+  ]
+  if (mode = "pa")[
+    export-annealing-file (word distanceParam "," powerValue) forumidParam
+  ]
 end
 
 to create-annealing-file [forumidParam]
   if file-exists? (word "./annealing_results/annealing_output_" forumidParam "(" behaviorspace-run-number ").csv")
       [file-delete (word "./annealing_results/annealing_output_" forumidParam "(" behaviorspace-run-number ").csv")]
   file-open (word "./annealing_results/annealing_output_" forumidParam "(" behaviorspace-run-number ").csv")
-  file-print "distance,USERVIEWGEOMETRICVALUEP,newThreadProb,filterShowAll,filterShowWithNoReply,filterShowHasReply"
+  if (mode = "filter")[
+    file-print "distance,USERVIEWGEOMETRICVALUEP,newThreadProb,filterShowAll,filterShowWithNoReply,filterShowHasReply"
+  ]
+  if (mode = "pa")[
+    file-print "distance,powerValue"
+  ]
   file-close
 end
 
@@ -112,7 +123,7 @@ to export-annealing-file [line forumidParam]
 end
 
 to-report get-distance [forumidParam startPercentParam endPercentParam contentitems]
-  threads-run forumidParam contentitems simruns USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply
+  threads-run forumidParam contentitems simruns USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply powerValue
   let currentDistance threads:distance forumidParam startPercentParam endPercentParam (word "./Threads/simulation_results/output_" forumidParam "(" behaviorspace-run-number ").csv")
   report currentDistance
 end
@@ -120,18 +131,31 @@ end
 to get-neighbour [steplength prec]
   save-old
   let found false
-  while[not found]
-    [
-    restore-old
-    let change javadistributions:uniform-sample 6
-    if change = 0 [set USERVIEWGEOMETRICVALUEP precision (USERVIEWGEOMETRICVALUEP + steplength) prec]
-    if change = 1 [set USERVIEWGEOMETRICVALUEP precision (USERVIEWGEOMETRICVALUEP - steplength) prec]
-    if change = 2 [set filterShowAll precision (filterShowAll + steplength) prec]
-    if change = 3 [set filterShowAll precision (filterShowAll - steplength) prec]
-    if change = 4 [set filterShowHasReply precision (filterShowHasReply + steplength) prec]
-    if change = 5 [set filterShowHasReply precision (filterShowHasReply - steplength) prec]
-    set filterShowWithNoReply precision (1 - (filterShowHasReply + filterShowAll)) prec
-    set found is-validConfiguration?
+
+  if (mode = "filter")[
+    while[not found]
+      [
+        restore-old
+        let change javadistributions:uniform-sample 6
+        if change = 0 [set USERVIEWGEOMETRICVALUEP precision (USERVIEWGEOMETRICVALUEP + steplength) prec]
+        if change = 1 [set USERVIEWGEOMETRICVALUEP precision (USERVIEWGEOMETRICVALUEP - steplength) prec]
+        if change = 2 [set filterShowAll precision (filterShowAll + steplength) prec]
+        if change = 3 [set filterShowAll precision (filterShowAll - steplength) prec]
+        if change = 4 [set filterShowHasReply precision (filterShowHasReply + steplength) prec]
+        if change = 5 [set filterShowHasReply precision (filterShowHasReply - steplength) prec]
+        set filterShowWithNoReply precision (1 - (filterShowHasReply + filterShowAll)) prec
+        set found is-validConfiguration?
+      ]
+  ]
+  if (mode = "pa")[
+    while[not found]
+      [
+        restore-old
+        let change javadistributions:uniform-sample 2
+        if change = 0 [set powerValue precision (powerValue + steplength) prec]
+        if change = 1 [set powerValue precision (powerValue - steplength) prec]
+        set found is-validConfiguration?
+      ]
   ]
 end
 
@@ -142,16 +166,10 @@ to-report is-validConfiguration?
     if (filterShowHasReply < 0 or filterShowHasReply > 1)[report false]
     if (filterShowWithNoReply < 0 or filterShowWithNoReply > 1)[report false]
     if (filterShowAll + filterShowHasReply + filterShowWithNoReply) != 1 [report false]
-  
+    
+    ;only for pa model
+    if (powerValue < 0 or powerValue > 1)[report false]
 report true
-end
-
-to update-best [distanceParam]
-  set bestDistance distanceParam
-  set bestUSERVIEWGEOMETRICVALUEP USERVIEWGEOMETRICVALUEP
-  set bestfilterShowAll filterShowAll
-  set bestfilterShowHasReply filterShowHasReply
-  set bestfilterShowWithNoReply filterShowWithNoReply
 end
 
 to restore-old
@@ -159,6 +177,9 @@ to restore-old
   set filterShowAll oldfilterShowAll
   set filterShowHasReply oldfilterShowHasReply
   set filterShowWithNoReply oldfilterShowWithNoReply
+  
+  ;only for pa model
+  set powerValue oldpowerValue
 end
 
 to save-old
@@ -166,6 +187,9 @@ to save-old
   set oldfilterShowAll filterShowAll
   set oldfilterShowHasReply filterShowHasReply
   set oldfilterShowWithNoReply filterShowWithNoReply
+  
+  ;only for pa model
+  set oldpowerValue powerValue
 end
 
 to debug-forum145
@@ -205,7 +229,7 @@ to debug-forum145
       ]
   ]
   create-file 145
-  export-file 145 1 threads:thread-dist 0.12 newThreadProbParam 0.38 0.21 0.41
+  export-file 145 1 threads:thread-dist 0.12 newThreadProbParam 0.38 0.21 0.41 0
   let currentDistance threads:distance 145 startPercentParam endPercentParam (word "./Threads/simulation_results/output_" 145 "(" behaviorspace-run-number ").csv")
   show currentDistance
 end
@@ -640,12 +664,12 @@ NetLogo 5.0.5
   <experiment name="annealing" repetitions="5" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>start-annealing</go>
-    <metric>bestDistance</metric>
-    <metric>bestUSERVIEWGEOMETRICVALUEP</metric>
+    <metric>lastAcceptedDistance</metric>
+    <metric>USERVIEWGEOMETRICVALUEP</metric>
     <metric>newThreadProb</metric>
-    <metric>bestfilterShowAll</metric>
-    <metric>bestfilterShowWithNoReply</metric>
-    <metric>bestfilterShowHasReply</metric>
+    <metric>filterShowAll</metric>
+    <metric>filterShowWithNoReply</metric>
+    <metric>filterShowHasReply</metric>
     <enumeratedValueSet variable="forumid">
       <value value="244"/>
       <value value="242"/>
@@ -692,6 +716,72 @@ NetLogo 5.0.5
       <value value="245"/>
       <value value="142"/>
       <value value="144"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mode">
+      <value value="&quot;filter&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="startPercent">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="endPercent">
+      <value value="10"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="annealing-pa" repetitions="5" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>start-annealing</go>
+    <metric>lastAcceptedDistance</metric>
+    <metric>powerValue</metric>
+    <metric>newThreadProb</metric>
+    <enumeratedValueSet variable="forumid">
+      <value value="244"/>
+      <value value="242"/>
+      <value value="283"/>
+      <value value="347"/>
+      <value value="278"/>
+      <value value="270"/>
+      <value value="320"/>
+      <value value="407"/>
+      <value value="101"/>
+      <value value="197"/>
+      <value value="346"/>
+      <value value="419"/>
+      <value value="250"/>
+      <value value="412"/>
+      <value value="126"/>
+      <value value="282"/>
+      <value value="418"/>
+      <value value="292"/>
+      <value value="405"/>
+      <value value="413"/>
+      <value value="256"/>
+      <value value="243"/>
+      <value value="44"/>
+      <value value="276"/>
+      <value value="327"/>
+      <value value="145"/>
+      <value value="267"/>
+      <value value="353"/>
+      <value value="324"/>
+      <value value="159"/>
+      <value value="328"/>
+      <value value="284"/>
+      <value value="239"/>
+      <value value="50"/>
+      <value value="140"/>
+      <value value="156"/>
+      <value value="323"/>
+      <value value="141"/>
+      <value value="264"/>
+      <value value="56"/>
+      <value value="143"/>
+      <value value="246"/>
+      <value value="245"/>
+      <value value="142"/>
+      <value value="144"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mode">
+      <value value="&quot;pa&quot;"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="startPercent">
       <value value="0"/>

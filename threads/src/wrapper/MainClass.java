@@ -19,6 +19,7 @@ public class MainClass extends DefaultClassManager{
     primitiveManager.addPrimitive("thread-dist", new ThreadLengthDistributionWrapper());
     primitiveManager.addPrimitive("new-thread", new NewThreadWrapper());
     primitiveManager.addPrimitive("reply-to", new ReplyToWrapper());
+    primitiveManager.addPrimitive("reply-to-pa", new ReplyToPaWrapper());
     primitiveManager.addPrimitive("list-size", new ListSizeWrapper()); 
     primitiveManager.addPrimitive("missed-count", new MissedCountWrapper());
     primitiveManager.addPrimitive("distance", new DistanceWrapper());

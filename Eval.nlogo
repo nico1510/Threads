@@ -1,5 +1,5 @@
 extensions [threads javadistributions]
-globals [forumid dist USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply]
+globals [mode forumid dist USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply powerValue]
 __includes["ThreadsTest.nls"]
 
 to eval
@@ -9,21 +9,31 @@ to eval
 
   let noOfForums (threads:read-forums "./Threads/threadlegths_sap2.csv" "./Threads/randomNumbersFullSAP.csv")
   let contentitems threads:draw-sample forumid startPercent endPercent
+  if (mode = "filter")[
+    threads:read-annealing-results "./Threads/annealing_result.csv" mode
+  ]
+  if (mode = "pa")[
+    threads:read-annealing-results "./Threads/annealing_pa_result.csv" mode
+  ]
 
-  threads:read-annealing-results "./Threads/annealing_result.csv"
   let params threads:get-best-parameters forumid
   
-  set USERVIEWGEOMETRICVALUEP (item 0 params)
-  set newThreadProb (item 1 params)
-  set filterShowAll (item 2 params)
-  set filterShowWithNoReply (item 3 params)
-  set filterShowHasReply (item 4 params)
+  if (mode = "filter")[
+    set USERVIEWGEOMETRICVALUEP (item 0 params)
+    set newThreadProb (item 1 params)
+    set filterShowAll (item 2 params)
+    set filterShowWithNoReply (item 3 params)
+    set filterShowHasReply (item 4 params)
+  ]
+  if (mode = "pa")[
+    set powerValue (item 0 params)
+    set newThreadProb (item 1 params)
+  ]
   
-  threads-run forumid contentitems 1 USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply
+  threads-run forumid contentitems 1 USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply powerValue
   set dist threads:distance forumid startPercent endPercent (word "./Threads/simulation_results/output_" forumid "(" behaviorspace-run-number ").csv")
   stop
 end 
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -471,6 +481,65 @@ NetLogo 5.0.5
       <value value="245"/>
       <value value="142"/>
       <value value="144"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mode">
+      <value value="&quot;filter&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="eval-pa" repetitions="100" runMetricsEveryStep="false">
+    <go>eval</go>
+    <metric>dist</metric>
+    <metric>newThreadProb</metric>
+    <metric>powerValue</metric>
+    <enumeratedValueSet variable="forumid">
+      <value value="244"/>
+      <value value="242"/>
+      <value value="283"/>
+      <value value="347"/>
+      <value value="278"/>
+      <value value="270"/>
+      <value value="320"/>
+      <value value="407"/>
+      <value value="101"/>
+      <value value="197"/>
+      <value value="346"/>
+      <value value="419"/>
+      <value value="250"/>
+      <value value="412"/>
+      <value value="126"/>
+      <value value="282"/>
+      <value value="418"/>
+      <value value="292"/>
+      <value value="405"/>
+      <value value="413"/>
+      <value value="256"/>
+      <value value="243"/>
+      <value value="44"/>
+      <value value="276"/>
+      <value value="327"/>
+      <value value="145"/>
+      <value value="267"/>
+      <value value="353"/>
+      <value value="324"/>
+      <value value="159"/>
+      <value value="328"/>
+      <value value="284"/>
+      <value value="239"/>
+      <value value="50"/>
+      <value value="140"/>
+      <value value="156"/>
+      <value value="323"/>
+      <value value="141"/>
+      <value value="264"/>
+      <value value="56"/>
+      <value value="143"/>
+      <value value="246"/>
+      <value value="245"/>
+      <value value="142"/>
+      <value value="144"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mode">
+      <value value="&quot;pa&quot;"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
