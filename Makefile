@@ -12,4 +12,4 @@ clean:
 new:
 	make clean
 	rm ./annealing_result.csv
-	rm ./evaluation_results.csv
+	rm ./evaluation_result.csv
