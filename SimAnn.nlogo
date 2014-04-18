@@ -9,11 +9,6 @@ to setup
   set-plot-y-range 0 0.1
   set simruns 10
   
-  set USERVIEWGEOMETRICVALUEP 0.5
-  set filterShowAll 0.5
-  set filterShowWithNoReply 0.25
-  set filterShowHasReply 0.25
-  
   ;only for pa model
   set powerValue 0.5
   
@@ -31,6 +26,13 @@ to-report get-precision [stepLengthParam]
   report prec
 end
 
+to init-params [prec]
+  set USERVIEWGEOMETRICVALUEP precision (javadistributions:random-double) prec
+  set filterShowAll precision (javadistributions:random-double) prec
+  set filterShowWithNoReply precision ((1 - filterShowAll) * javadistributions:random-double) prec
+  set filterShowHasReply precision (1 - (filterShowAll + filterShowWithNoReply)) prec
+end
+
 to start-annealing
   let steplength 0.01
   let tempLevelReductions 200
@@ -41,6 +43,7 @@ to start-annealing
   let l 0
   
   let prec get-precision steplength
+  init-params prec
   
   let contentitems threads:draw-sample forumid startPercent endPercent
   set newThreadProb precision (threads:get-newthreadprobability forumid startPercent endPercent) prec
@@ -284,7 +287,7 @@ BUTTON
 174
 170
 debug_145
-debug-forum145
+init-params 2
 NIL
 1
 T
@@ -724,7 +727,7 @@ NetLogo 5.0.5
       <value value="0"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="endPercent">
-      <value value="10"/>
+      <value value="50"/>
     </enumeratedValueSet>
   </experiment>
   <experiment name="annealing-pa" repetitions="5" runMetricsEveryStep="false">

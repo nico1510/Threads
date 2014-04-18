@@ -1,11 +1,8 @@
 extensions [threads javadistributions]
-globals [mode forumid dist USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply powerValue]
+globals [mode forumid startPercent endPercent dist USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply powerValue]
 __includes["ThreadsTest.nls"]
 
 to eval
-
-  let startPercent 10
-  let endPercent 100
 
   let noOfForums (threads:read-forums "./Threads/threadlegths_sap2.csv" "./Threads/randomNumbersFullSAP.csv")
   let contentitems threads:draw-sample forumid startPercent endPercent
@@ -482,6 +479,12 @@ NetLogo 5.0.5
       <value value="142"/>
       <value value="144"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="startPercent">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="endPercent">
+      <value value="100"/>
+    </enumeratedValueSet>
     <enumeratedValueSet variable="mode">
       <value value="&quot;filter&quot;"/>
     </enumeratedValueSet>
@@ -537,6 +540,12 @@ NetLogo 5.0.5
       <value value="245"/>
       <value value="142"/>
       <value value="144"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="startPercent">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="endPercent">
+      <value value="100"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="mode">
       <value value="&quot;pa&quot;"/>
