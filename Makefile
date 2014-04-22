@@ -38,6 +38,8 @@ clean:
 
 new:
 	make clean
+	@rm -rf ./evaluation_pa_powerValue_0_result.csv
+	@rm -rf ./evaluation_pa_powerValue_1_result.csv
 	@rm -rf ./annealing_result.csv
 	@rm -rf ./evaluation_result.csv
 	@rm -rf ./annealing_pa_result.csv
