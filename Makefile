@@ -1,26 +1,18 @@
 annealing:
 	make clean
-	../netlogo-headless.sh --model ./Threads/SimAnn.nlogo --experiment annealing --table ./Threads/annealing_result.csv
+	../netlogo-headless.sh --model ./Threads/SimAnn.nlogo --experiment annealing --table ./Threads/annealing_result.csv --threads 5
 
 eval:
 	make clean
-	../netlogo-headless.sh --model ./Threads/Eval.nlogo --experiment eval --table ./Threads/evaluation_result.csv
+	../netlogo-headless.sh --model ./Threads/Eval.nlogo --experiment eval --table ./Threads/evaluation_result.csv --threads 5
 
 pa_annealing:
 	make clean
-	../netlogo-headless.sh --model ./Threads/SimAnn.nlogo --experiment annealing-pa --table ./Threads/annealing_pa_result.csv
+	../netlogo-headless.sh --model ./Threads/SimAnn.nlogo --experiment annealing-pa --table ./Threads/annealing_pa_result.csv --threads 5
 
 pa_eval:
 	make clean
-	../netlogo-headless.sh --model ./Threads/Eval.nlogo --experiment eval-pa --table ./Threads/evaluation_pa_result.csv
-
-pa_fixed-0:
-	make clean
-	../netlogo-headless.sh --model ./Threads/Eval_pa_fixed-values.nlogo --experiment pa-fixed-0 --table ./Threads/evaluation_pa_powerValue_0_result.csv
-
-pa_fixed-1:
-	make clean
-	../netlogo-headless.sh --model ./Threads/Eval_pa_fixed-values.nlogo --experiment pa-fixed-1 --table ./Threads/evaluation_pa_powerValue_1_result.csv
+	../netlogo-headless.sh --model ./Threads/Eval.nlogo --experiment eval-pa --table ./Threads/evaluation_pa_result.csv --threads 5
 
 all_filter:
 	make annealing
@@ -38,8 +30,6 @@ clean:
 
 new:
 	make clean
-	@rm -rf ./evaluation_pa_powerValue_0_result.csv
-	@rm -rf ./evaluation_pa_powerValue_1_result.csv
 	@rm -rf ./annealing_result.csv
 	@rm -rf ./evaluation_result.csv
 	@rm -rf ./annealing_pa_result.csv
