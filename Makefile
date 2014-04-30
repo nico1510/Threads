@@ -22,6 +22,15 @@ all_pa:
 	make pa_annealing
 	make pa_eval
 
+pa_fixed-0:
+	make clean
+	../netlogo-headless.sh --model ./Threads/Eval_pa_fixed-values.nlogo --experiment pa-fixed-0 --table ./Threads/evaluation_pa_powerValue_0_result.csv
+
+pa_fixed-1:
+	make clean
+	../netlogo-headless.sh --model ./Threads/Eval_pa_fixed-values.nlogo --experiment pa-fixed-1 --table ./Threads/evaluation_pa_powerValue_1_result.csv
+
+
 clean:
 	find simulation_results -name "*.csv" -delete
 	find annealing_results -name "*.csv" -delete
