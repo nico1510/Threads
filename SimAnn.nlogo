@@ -27,7 +27,7 @@ to-report get-precision [stepLengthParam]
 end
 
 to init-params [prec]
-  set USERVIEWGEOMETRICVALUEP precision (javadistributions:random-double) prec
+  set USERVIEWGEOMETRICVALUEP precision (0.01 + (javadistributions:random-double * (1 - 0.01))) prec ; USERVIEWGEOMETRICVALUEP has to be > 0
   set filterShowAll precision (javadistributions:random-double) prec
   set filterShowWithNoReply precision ((1 - filterShowAll) * javadistributions:random-double) prec
   set filterShowHasReply precision (1 - (filterShowAll + filterShowWithNoReply)) prec
@@ -315,6 +315,23 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" ""
+
+BUTTON
+62
+235
+125
+268
+test
+init-params 2
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
