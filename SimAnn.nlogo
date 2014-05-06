@@ -27,10 +27,18 @@ to-report get-precision [stepLengthParam]
 end
 
 to init-params [prec]
-  set USERVIEWGEOMETRICVALUEP precision (0.01 + (javadistributions:random-double * (1 - 0.01))) prec ; USERVIEWGEOMETRICVALUEP has to be > 0
-  set filterShowAll precision (javadistributions:random-double) prec
-  set filterShowWithNoReply precision ((1 - filterShowAll) * javadistributions:random-double) prec
-  set filterShowHasReply precision (1 - (filterShowAll + filterShowWithNoReply)) prec
+  if (mode = "filter")[
+    set USERVIEWGEOMETRICVALUEP precision (0.01 + (javadistributions:random-double * (1 - 0.01))) prec ; USERVIEWGEOMETRICVALUEP has to be > 0
+    set filterShowAll precision (javadistributions:random-double) prec
+    set filterShowWithNoReply precision ((1 - filterShowAll) * javadistributions:random-double) prec
+    set filterShowHasReply precision (1 - (filterShowAll + filterShowWithNoReply)) prec
+  ]
+  if (mode = "userview")[
+    set USERVIEWGEOMETRICVALUEP precision (0.01 + (javadistributions:random-double * (1 - 0.01))) prec ; USERVIEWGEOMETRICVALUEP has to be > 0
+    set filterShowAll 1
+    set filterShowWithNoReply 0
+    set filterShowHasReply 0
+  ]
 end
 
 to start-annealing
@@ -98,7 +106,7 @@ end
 to write-distance [distanceParam forumidParam]
   annealing-plot distanceParam
   update-plots
-  if (mode = "filter")[
+  if (mode = "filter" or mode = "userview")[
     export-annealing-file (word distanceParam "," USERVIEWGEOMETRICVALUEP "," newThreadProb "," filterShowAll "," filterShowWithNoReply "," filterShowHasReply ) forumidParam
   ]
   if (mode = "pa")[
@@ -110,7 +118,7 @@ to create-annealing-file [forumidParam]
   if file-exists? (word "./annealing_results/annealing_output_" forumidParam "(" behaviorspace-run-number ").csv")
       [file-delete (word "./annealing_results/annealing_output_" forumidParam "(" behaviorspace-run-number ").csv")]
   file-open (word "./annealing_results/annealing_output_" forumidParam "(" behaviorspace-run-number ").csv")
-  if (mode = "filter")[
+  if (mode = "filter" or mode = "userview")[
     file-print "distance,USERVIEWGEOMETRICVALUEP,newThreadProb,filterShowAll,filterShowWithNoReply,filterShowHasReply"
   ]
   if (mode = "pa")[
@@ -150,6 +158,16 @@ to get-neighbour [steplength prec]
         set found is-validConfiguration?
       ]
   ]
+  if (mode = "userview")[
+    while[not found]
+      [
+        restore-old
+        let change javadistributions:uniform-sample 2
+        if change = 0 [set USERVIEWGEOMETRICVALUEP precision (USERVIEWGEOMETRICVALUEP + steplength) prec]
+        if change = 1 [set USERVIEWGEOMETRICVALUEP precision (USERVIEWGEOMETRICVALUEP - steplength) prec]
+        set found is-validConfiguration?
+      ]
+  ]
   if (mode = "pa")[
     while[not found]
       [
@@ -171,7 +189,7 @@ to-report is-validConfiguration?
     if (filterShowAll + filterShowHasReply + filterShowWithNoReply) != 1 [report false]
     
     ;only for pa model
-    if (powerValue < 0 or powerValue > 1)[report false]
+    if (powerValue < 0)[report false]
 report true
 end
 
@@ -322,7 +340,7 @@ BUTTON
 125
 268
 test
-init-params 2
+threads-run 244 2876 10 0.35 0.26 1 0 0 0.5
 NIL
 1
 T
@@ -808,6 +826,72 @@ NetLogo 5.0.5
     </enumeratedValueSet>
     <enumeratedValueSet variable="endPercent">
       <value value="10"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="annealing-userview" repetitions="5" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>start-annealing</go>
+    <metric>lastAcceptedDistance</metric>
+    <metric>USERVIEWGEOMETRICVALUEP</metric>
+    <metric>newThreadProb</metric>
+    <metric>filterShowAll</metric>
+    <metric>filterShowWithNoReply</metric>
+    <metric>filterShowHasReply</metric>
+    <enumeratedValueSet variable="forumid">
+      <value value="244"/>
+      <value value="242"/>
+      <value value="283"/>
+      <value value="347"/>
+      <value value="278"/>
+      <value value="270"/>
+      <value value="320"/>
+      <value value="407"/>
+      <value value="101"/>
+      <value value="197"/>
+      <value value="346"/>
+      <value value="419"/>
+      <value value="250"/>
+      <value value="412"/>
+      <value value="126"/>
+      <value value="282"/>
+      <value value="418"/>
+      <value value="292"/>
+      <value value="405"/>
+      <value value="413"/>
+      <value value="256"/>
+      <value value="243"/>
+      <value value="44"/>
+      <value value="276"/>
+      <value value="327"/>
+      <value value="145"/>
+      <value value="267"/>
+      <value value="353"/>
+      <value value="324"/>
+      <value value="159"/>
+      <value value="328"/>
+      <value value="284"/>
+      <value value="239"/>
+      <value value="50"/>
+      <value value="140"/>
+      <value value="156"/>
+      <value value="323"/>
+      <value value="141"/>
+      <value value="264"/>
+      <value value="56"/>
+      <value value="143"/>
+      <value value="246"/>
+      <value value="245"/>
+      <value value="142"/>
+      <value value="144"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="mode">
+      <value value="&quot;userview&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="startPercent">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="endPercent">
+      <value value="50"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>

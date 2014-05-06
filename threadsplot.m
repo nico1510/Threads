@@ -64,3 +64,8 @@ legend ("filter","random","pa","threshold");
 set(gca(),'xtick',1:length(names));
 set(gca(),'xticklabel',names);
 
+labels = cellfun(@str2double,names);
+
+R = [labels, filtermeans', randommeans', pameans', thresholds'];
+csvwrite("out.csv", R);
+

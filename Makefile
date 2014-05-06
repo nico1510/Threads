@@ -14,6 +14,14 @@ pa_eval:
 	make clean
 	../netlogo-headless.sh --model ./Threads/Eval.nlogo --experiment eval-pa --table ./Threads/evaluation_pa_result.csv --threads 5
 
+userview_annealing:
+	make clean
+	../netlogo-headless.sh --model ./Threads/SimAnn.nlogo --experiment annealing-userview --table ./Threads/annealing_result.csv --threads 5
+
+userview_eval:
+	make clean
+	../netlogo-headless.sh --model ./Threads/Eval.nlogo --experiment eval-userview --table ./Threads/evaluation_result.csv --threads 5
+
 all_filter:
 	make annealing
 	make eval
@@ -21,6 +29,10 @@ all_filter:
 all_pa:
 	make pa_annealing
 	make pa_eval
+
+all_userview:
+	make userview_annealing
+	make userview_eval
 
 pa_fixed-0:
 	make clean
@@ -43,3 +55,5 @@ new:
 	@rm -rf ./evaluation_result.csv
 	@rm -rf ./annealing_pa_result.csv
 	@rm -rf ./evaluation_pa_result.csv
+	@rm -rf ./evaluation_pa_powerValue_0_result.csv
+	@rm -rf ./evaluation_pa_powerValue_1_result.csv

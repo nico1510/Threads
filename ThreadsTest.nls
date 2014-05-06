@@ -21,7 +21,7 @@ to-report step [contentitemsParam USERVIEWGEOMETRICVALUEPParam newThreadProbPara
 	threads:new-thread
       ]
       [
-       if (mode = "filter")[
+       if (mode = "filter" or mode = "userview")[
          let listfilter (javadistributions:generic-sample3 filterShowAllParam filterShowWithNoReplyParam filterShowHasReplyParam) + 1
          let pos javadistributions:geometric-sample USERVIEWGEOMETRICVALUEPParam
          threads:reply-to pos listfilter
@@ -39,7 +39,7 @@ to create-file [forumidParam]
   if file-exists? (word "./simulation_results/output_" forumidParam "(" behaviorspace-run-number ").csv")
       [file-delete (word "./simulation_results/output_" forumidParam "(" behaviorspace-run-number ").csv")]
   file-open (word "./simulation_results/output_" forumidParam "(" behaviorspace-run-number ").csv")
-  if (mode = "filter")[
+  if (mode = "filter" or mode = "userview")[
     file-print "THREADSIZE,FREQUENCY,runCount,USERVIEWGEOMETRICVALUEPParam,filterShowAllParam,filterShowWithNoReplyParam,filterShowHasReplyParam,policyLatestActivityCreationDate,policyThreadCreationDate,policyThreadSize"
   ]
   if (mode = "pa")[
@@ -53,7 +53,7 @@ to export-file [forumidParam runcount threads USERVIEWGEOMETRICVALUEPParam newTh
   file-open (word "./simulation_results/output_" forumidParam "(" behaviorspace-run-number ").csv")
   let counter 1
   foreach threads
-      [  if (mode = "filter")[
+      [  if (mode = "filter" or mode = "userview")[
            file-print (word counter "," ? "," runcount "," USERVIEWGEOMETRICVALUEPParam "," filterShowAllParam "," filterShowWithNoReplyParam "," filterShowHasReplyParam ",1, 0, 0" )
          ]
          if (mode = "pa")[
