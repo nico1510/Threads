@@ -22,6 +22,25 @@ for i = 1:length(names)
  filtermeans(end+1) = mean(getfield(filtermap, names{i}));
 end
 
+% read evaluation results of uverview model
+[runnumber, forumid, startPercent, endPercent, mode, step, distance, USERVIEWGEOMETRICVALUEP, newThreadProb, filterShowAll, filterShowWithNoReply, filterShowHasReply] = textread('evaluation_userview_result.csv','%s %s %s %s %s %s %s %s %s %s %s %s', 'headerlines', 7,'delimiter', ',');
+userviewmap = struct();
+for i = 1:numel(forumid)
+ id = char(strcat('forum', strrep(forumid(i), '"', '')));
+ diststring = strrep(distance(i), '"', '');
+ dist = cellfun(@str2double,diststring);
+ if isfield(userviewmap, id) == 0
+     userviewmap.(id) = [];
+ else
+     userviewmap.(id)(end+1) = dist;
+ end
+end
+
+userviewmeans = [];
+for i = 1:length(names)
+ userviewmeans(end+1) = mean(getfield(userviewmap, names{i}));
+end
+
 % read evaluation results of random model
 [runnumber, forumid, mode, step, distance, newThreadProb, powerValue] = textread('./evaluation_pa_powerValue_0_result.csv','%s %s %s %s %s %s %s', 'headerlines', 7,'delimiter', ',');
 randommap = struct();
@@ -60,6 +79,7 @@ for i = 1:length(names)
  pameans(end+1) = mean(getfield(pamap, names{i}));
 end
 
+
 % compute thresholds
 thresholds = [];
 for i = 1:length(names)
@@ -72,13 +92,15 @@ end
 semilogy(filtermeans, 'marker', 'x', 'color', 'r'); hold on;
 semilogy(randommeans, 'marker', 'x', 'color', 'g'); hold on;
 semilogy(pameans, 'marker', 'x', 'color', 'b'); hold on;
+semilogy(userviewmeans, 'marker', 'x', 'color', 'm'); hold on;
 semilogy(thresholds, 'linestyle', '--', 'color', 'black');
-legend ('filter','random','pa','threshold');
+legend ('filter','random','pa','userview','threshold');
 set(gca(),'xtick',1:length(names));
-set(gca(),'xticklabel',names(6:end));
+set(gca(),'xticklabel',cellfun(@(x) strrep(x,'forum',''),names,'Un',0));
 
-labels = cellfun(@str2double,names);
 
-R = [labels, filtermeans', randommeans', pameans', thresholds'];
-csvwrite('data.csv', R, '-append');
+% labels = cellfun(@str2double,names);
+% 
+% R = [labels, filtermeans', randommeans', pameans', userviewmeans', thresholds'];
+% csvwrite('data.csv', R, '-append');
 
