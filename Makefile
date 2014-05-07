@@ -16,11 +16,11 @@ pa_eval:
 
 userview_annealing:
 	make clean
-	../netlogo-headless.sh --model ./Threads/SimAnn.nlogo --experiment annealing-userview --table ./Threads/annealing_result.csv --threads 5
+	../netlogo-headless.sh --model ./Threads/SimAnn.nlogo --experiment annealing-userview --table ./Threads/annealing_userview_result.csv --threads 5
 
 userview_eval:
 	make clean
-	../netlogo-headless.sh --model ./Threads/Eval.nlogo --experiment eval-userview --table ./Threads/evaluation_result.csv --threads 5
+	../netlogo-headless.sh --model ./Threads/Eval.nlogo --experiment eval-userview --table ./Threads/evaluation_userview_result.csv --threads 5
 
 all_filter:
 	make annealing
