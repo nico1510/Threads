@@ -9,7 +9,6 @@ to eval
   
   set newThreadProb (threads:get-newthreadprobability forumid startPercent endPercent)
 
-  
   threads-run forumid contentitems 1 USERVIEWGEOMETRICVALUEP newThreadProb filterShowAll filterShowWithNoReply filterShowHasReply powerValue
   set dist threads:distance forumid startPercent endPercent (word "./Threads/simulation_results/output_" forumid "(" behaviorspace-run-number ").csv")
   stop

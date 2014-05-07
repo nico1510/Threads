@@ -6,8 +6,11 @@ to eval
 
   let noOfForums (threads:read-forums "./Threads/threadlegths_sap2.csv" "./Threads/randomNumbersFullSAP.csv")
   let contentitems threads:draw-sample forumid startPercent endPercent
-  if (mode = "filter" or mode = "userview")[
+  if (mode = "filter")[
     threads:read-annealing-results "./Threads/annealing_result.csv" mode
+  ]
+  if (mode = "userview")[
+    threads:read-annealing-results "./Threads/annealing_userview_result.csv" mode
   ]
   if (mode = "pa")[
     threads:read-annealing-results "./Threads/annealing_pa_result.csv" mode

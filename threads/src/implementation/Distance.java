@@ -303,49 +303,47 @@ public class Distance {
                         infos = line.split(",");
                         forum = infos[1].replaceAll("\"", "");
                         distance = Double.parseDouble(infos[6].replaceAll("\"", ""));
-
-                        if (mode.equals("filter")) {
+                        if (mode.equals("pa")) {
+                            //"[run number]","forumid","mode","startPercent","endPercent","[step]","lastAcceptedDistance","powerValue","newThreadProb"
+                            powerValue = Double.parseDouble(infos[7].replaceAll("\"", ""));
+                            newThreadProb = Double.parseDouble(infos[8].replaceAll("\"", ""));
+                        } else {
                             //"[run number]","forumid","mode","startPercent","endPercent","[step]","lastAcceptedDistance","USERVIEWGEOMETRICVALUEP","newThreadProb","filterShowAll","filterShowWithNoReply","filterShowHasReply"
                             USERVIEWGEOMETRICVALUEP = Double.parseDouble(infos[7].replaceAll("\"", ""));
                             newThreadProb = Double.parseDouble(infos[8].replaceAll("\"", ""));
                             filterShowAll = Double.parseDouble(infos[9].replaceAll("\"", ""));
                             filterShowWithNoReply = Double.parseDouble(infos[10].replaceAll("\"", ""));
                             filterShowHasReply = Double.parseDouble(infos[11].replaceAll("\"", ""));
-                        } else if (mode.equals("pa")) {
-                            //"[run number]","forumid","mode","startPercent","endPercent","[step]","lastAcceptedDistance","powerValue","newThreadProb"
-                            powerValue = Double.parseDouble(infos[7].replaceAll("\"", ""));
-                            newThreadProb = Double.parseDouble(infos[8].replaceAll("\"", ""));
                         }
-
 
                         if (!bestParametersMap.containsKey(forum)) {
                             params = new ArrayList<Double>();
-                            if (mode.equals("filter")) {
+                            if (mode.equals("pa")) {
+                                params.add(distance);
+                                params.add(powerValue);
+                                params.add(newThreadProb);
+                            } else {
                                 params.add(distance);
                                 params.add(USERVIEWGEOMETRICVALUEP);
                                 params.add(newThreadProb);
                                 params.add(filterShowAll);
                                 params.add(filterShowWithNoReply);
                                 params.add(filterShowHasReply);
-                            } else if (mode.equals("pa")) {
-                                params.add(distance);
-                                params.add(powerValue);
-                                params.add(newThreadProb);
                             }
                             bestParametersMap.put(forum, params);
                         } else {
                             if (distance < bestParametersMap.get(forum).get(0)) {
                                 params = new ArrayList<Double>();
                                 params.add(distance);
-                                if (mode.equals("filter")) {
+                                if (mode.equals("pa")) {
+                                    params.add(powerValue);
+                                    params.add(newThreadProb);
+                                } else {
                                     params.add(USERVIEWGEOMETRICVALUEP);
                                     params.add(newThreadProb);
                                     params.add(filterShowAll);
                                     params.add(filterShowWithNoReply);
                                     params.add(filterShowHasReply);
-                                } else if (mode.equals("pa")) {
-                                    params.add(powerValue);
-                                    params.add(newThreadProb);
                                 }
                                 bestParametersMap.put(forum, params);
                             }
