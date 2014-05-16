@@ -8,10 +8,14 @@ to setup
   set-current-plot "distance"
   set-plot-y-range 0 0.1
   set simruns 10
-  
-  ;only for pa model
+
+  ;these initial values are never used but they have to be set here in order to have a valid configuration at the beginning
   set powerValue 0.5
-  
+  set USERVIEWGEOMETRICVALUEP 0.25
+  set filterShowAll 0.5
+  set filterShowWithNoReply 0.25
+  set filterShowHasReply 0.25
+
   let noOfForums (threads:read-forums "./Threads/threadlegths_sap2.csv" "./Threads/randomNumbersFullSAP.csv")
   show (word "Number of forums" noOfForums)
 end
@@ -39,6 +43,10 @@ to init-params [prec]
     set filterShowWithNoReply 0
     set filterShowHasReply 0
   ]
+  if (mode = "pa")[
+    ;only for pa model
+    set powerValue precision (javadistributions:random-double) prec
+  ]
 end
 
 to start-annealing
@@ -58,7 +66,6 @@ to start-annealing
   
   let distanceI get-distance forumid startPercent endPercent contentitems
   let distanceJ 0
-  
   
   create-annealing-file forumid
   
@@ -825,7 +832,7 @@ NetLogo 5.0.5
       <value value="0"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="endPercent">
-      <value value="10"/>
+      <value value="50"/>
     </enumeratedValueSet>
   </experiment>
   <experiment name="annealing-userview" repetitions="5" runMetricsEveryStep="false">
