@@ -82,9 +82,17 @@ end
 
 % compute thresholds
 thresholds = [];
+relPath = './sample_distributions/';
 for i = 1:length(names)
- distrfile = ls(strcat('./sample_distributions/sample-distribution_',names{i}(6:end),'*.csv'));
- [threadlength, frequency] = textread(distrfile(1:end-1),'%d %d', 'delimiter', ',');
+ distrfile = ls(strcat(relPath,'sample-distribution_',names{i}(6:end),'*.csv'));
+ % results for ls vary with used os
+ if ispc 
+    distrfile = strcat(relPath, distrfile);
+ else
+    distrfile = distrfile(1:end-1);
+ end
+ tempDistrFile = strcat(relPath, distrfile(1:end-1));
+ [threadlength, frequency] = textread(distrfile,'%d %d', 'delimiter', ',');
  thresholds(end+1) = 1.92/sqrt(sum(frequency));
 end
 
