@@ -459,7 +459,7 @@ NetLogo 5.0.5
       <value value="144"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="startPercent">
-      <value value="0"/>
+      <value value="50"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="endPercent">
       <value value="100"/>
@@ -524,7 +524,7 @@ NetLogo 5.0.5
       <value value="144"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="startPercent">
-      <value value="0"/>
+      <value value="50"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="endPercent">
       <value value="100"/>
